@@ -1,5 +1,5 @@
-import { notifyUpdate, onSetup, onUpdate } from './lifecycle'
 import QRCode from 'qrcode'
+import { notifyUpdate, onSetup, onUpdate } from './lifecycle'
 
 export default function Index() {
   onSetup(() => {
@@ -16,27 +16,29 @@ export default function Index() {
       notifyUpdate()
     })
 
-    let generating = false
     let lastViewUrl: string | null = null
-    const generate = async (value: string) => {
-      if (generating) return
+    let generatorAc = null as AbortController | null
 
+    const generate = async (value: string) => {
       // console.log('generating')
-      generating = true
       try {
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          QRCode.toDataURL(canvas, value, { errorCorrectionLevel: 'H' }, (err, url) => {
-            if (err) {
-              reject(err)
-              return
-            }
-            resolve(url)
-          })
-        })
+        const ac = new AbortController()
+        const { signal } = ac
+        generatorAc?.abort()
+        generatorAc = ac
+
+        await new Promise(resolve => setTimeout(resolve, 34)) // debounce
+        signal.throwIfAborted()
+
+        const dataUrl = await QRCode.toDataURL(canvas, value, { width: 300 })
+        signal.throwIfAborted()
+
         // console.log('rendered', dataUrl)
         outputImg.src = dataUrl
-      } finally {
-        generating = false
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === 'AbortError')) {
+          throw err
+        }
       }
     }
 
@@ -50,7 +52,14 @@ export default function Index() {
       }
 
       anchor.setAttribute('href', viewUrl)
-      counter.textContent = `(size: ${viewUrl.length - 12})`
+
+      const size = viewUrl.length - 12
+      counter.textContent = `(size: ${size}/${HARD_LIMIT})`
+      if (size >= HARD_LIMIT) {
+        counter.style.color = 'yellow'
+      } else {
+        counter.style.color = 'inherit'
+      }
     })
   })
 
@@ -83,3 +92,5 @@ export default function Index() {
     </div>
   `
 }
+
+const HARD_LIMIT = 2300
