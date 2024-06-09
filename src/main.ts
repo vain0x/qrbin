@@ -8,11 +8,10 @@ console.log('url', url, url.pathname, url.search)
 console.log('base_url', import.meta.env.BASE_URL)
 
 const app = (() => {
-  const pathname = (url.pathname.replace('/qrbin/', '/'))
-  switch (pathname) {
-    case '/': return Index
-    case '/view': return View
-    default: return function NotFound() { return `404 Not Found` }
+  if (url.searchParams.get('view')) {
+    return View
+  } else {
+    return Index
   }
 })()
 

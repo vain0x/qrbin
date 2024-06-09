@@ -1,6 +1,10 @@
 import QRCode from 'qrcode'
 import { notifyUpdate, onSetup, onUpdate } from './lifecycle'
 
+const ORIGIN = window.location.origin
+const BASE_URL = import.meta.env.BASE_URL
+const BASE_VIEW = `${ORIGIN}${BASE_URL}?view=1`
+
 export default function Index() {
   onSetup(() => {
     const form = document.getElementById('form') as HTMLFormElement
@@ -44,7 +48,7 @@ export default function Index() {
 
     onUpdate(() => {
       const input = textarea.value.trim()
-      const viewUrl = `./view?data=${encodeURIComponent(input)}`
+      const viewUrl = `${BASE_VIEW}&data=${encodeURIComponent(input)}`
 
       if (viewUrl !== lastViewUrl) {
         lastViewUrl = viewUrl
@@ -53,7 +57,7 @@ export default function Index() {
 
       anchor.setAttribute('href', viewUrl)
 
-      const size = viewUrl.length - 12
+      const size = viewUrl.length - BASE_VIEW.length
       counter.textContent = `(size: ${size}/${HARD_LIMIT})`
       if (size >= HARD_LIMIT) {
         counter.style.color = 'yellow'
