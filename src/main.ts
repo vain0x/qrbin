@@ -5,9 +5,11 @@ import View from './view'
 
 const url = new URL(window.location.href, window.location.origin)
 console.log('url', url, url.pathname, url.search)
+console.log('base_url', import.meta.env.BASE_URL)
 
 const app = (() => {
-  switch (url.pathname) {
+  const pathname = (url.pathname.replace('/qrbin/', '/'))
+  switch (pathname) {
     case '/': return Index
     case '/view': return View
     default: return function NotFound() { return `404 Not Found` }
